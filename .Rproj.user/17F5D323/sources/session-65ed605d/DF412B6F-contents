@@ -1,0 +1,52 @@
+x <- raster::sampleRegular(ra, size=1e5, asRaster=TRUE)
+X <- raster::xFromCol(x,1:ncol(x))
+Y <- raster::yFromRow(x, nrow(x):1)
+Z <- t((raster::values(x, format='matrix'))[nrow(x):1,])
+
+background <- min(Z, na.rm=TRUE) - 1
+Z[is.na(Z)] <- background
+
+zlim <- range(Z)
+zlen <- zlim[2] - zlim[1] + 1
+xlen <- max(X) - min(X)
+ylen <- max(Y) - min(Y)
+if (adjust) {
+    adj <- 4*zlen/min(ylen,xlen)
+    X <- X * adj
+    Y <- Y * adj
+}
+
+if (!is.null(drape)){
+    x <- raster::sampleRegular(drape, size=maxpixels, asRaster=TRUE)
+    Zcol <- t((raster::values(x, format='matrix'))[nrow(x):1,])
+    background <- min(Zcol, na.rm=TRUE) - 1
+    Zcol[is.na(Zcol)] <- background
+    zlim <- range(Zcol)
+} else {
+    Zcol <- Z
+}
+colorTable <- x@legend@colortable
+if (useLegend & length(colorTable)>1) {
+    color <- colorTable
+} else {
+    if (length(100)==1) at <- do.breaks(zlim, 100)
+    if (rev) {
+        if (is.function(color)) {
+            col <- rev(col(length(at)))
+        } else {
+            col <- rev(col)
+        }
+    }
+    color <- level.colors(Zcol, at=at, col.regions=color)
+}
+## Open a device only if there is none active
+if (rgl::cur3d() == 0) rgl::open3d()
+
+if (background==min(Zcol)) {
+    trans <- Zcol
+    trans[] <- 1.0
+    trans[Zcol==background] <- 0
+    rgl::surface3d(X, Y, Z*1, color=color, back="lines", alpha=trans)
+} else {
+    rgl::surface3d(X, Y, Z*zfac, color=color, back="lines", ...)
+}

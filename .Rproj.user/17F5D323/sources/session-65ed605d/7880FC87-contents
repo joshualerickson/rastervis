@@ -1,0 +1,78 @@
+devtools::document(
+)
+
+library(terra)
+
+r <- rast('Z:/Downloads/data_mat_rast.tif') 
+ra <- raster::raster('Z:/Downloads/data_mat_rast.tif')
+
+
+
+
+plot3D(r, drape = classify(r, c(0.00000, 16.17572, 48.04202, 112.00000)))
+plot3D(ra)
+x <- r
+
+x <- terra::spatSample(x, size=1e5, method = 'regular', as.raster = TRUE)
+X <- terra::xFromCol(x,1:ncol(x))
+Y <- terra::yFromRow(x, nrow(x):1)
+Z <- t(as.matrix(x, wide = TRUE))
+t(Z)
+Z <- t((terra::values(x, format='matrix'))[ncol(x):1,])
+
+background <- min(Z, na.rm=TRUE) - 1
+Z[is.na(Z)] <- background
+
+zlim <- range(Z)
+zlen <- zlim[2] - zlim[1] + 1
+xlen <- max(X) - min(X)
+ylen <- max(Y) - min(Y)
+if (adjust) {
+    adj <- 4*zlen/min(ylen,xlen)
+    X <- X * adj
+    Y <- Y * adj
+}
+
+if (!is.null(drape)){
+    x <- terra::spatSample(drape, size=1e5,method = 'regular', as.raster=TRUE)
+    #Zcol <- t((terra::values(x, format='matrix'))[nrow(x):1,])
+    Zcol <- t(as.matrix(x, wide = TRUE))
+    background <- min(Zcol, na.rm=TRUE) - 1
+    Zcol[is.na(Zcol)] <- background
+    zlim <- range(Zcol)
+} else {
+    Zcol <- Z
+}
+colorTable <- x@legend@colortable
+
+myColorRamp <- function(colors, values) {
+    v <- (values - min(values))/diff(range(values))
+    x <- grDevices::colorRamp(colors)(v)
+    grDevices::rgb(x[,1], x[,2], x[,3], maxColorValue = 255)
+}
+colorTable <-  myColorRamp(c("#33b544","#33b544","#f5c01a","#ee3b27"),0:255)
+
+if (useLegend & length(colorTable)>1) {
+    color <- colorTable
+} else {
+    if (length(at)==1) at <- do.breaks(zlim, at)
+    if (rev) {
+        if (is.function(col)) {
+            col <- rev(col(length(at)))
+        } else {
+            col <- rev(col)
+        }
+    }
+    color <- level.colors(Zcol, at=at, col.regions=col)
+}
+## Open a device only if there is none active
+if (rgl::cur3d() == 0) rgl::open3d()
+
+if (background==min(Zcol)) {
+    trans <- Zcol
+    trans[] <- 1.0
+    trans[Zcol==background] <- 0
+    rgl::surface3d(X, Y, Z*1, col=color, back="lines", alpha=trans)
+} else {
+    rgl::surface3d(Y, X, Z*zfac, color=color, back="lines", ...)
+}
