@@ -12,3 +12,4 @@ LazyLoad: yes
 Depends: R (>= 4.0.0), methods, lattice (>= 0.22-5)
 Imports: raster (>= 3.4-13), terra (>= 1.7-17), latticeExtra, stats, utils, parallel, grid, grDevices, RColorBrewer, hexbin, sp (>= 1.0-6), zoo, viridisLite 
 Suggests: rgl, ggplot2, colorspace, dichromat, sf
+RoxygenNote: 7.3.1

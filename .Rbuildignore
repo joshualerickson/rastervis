@@ -1,3 +1,5 @@
 LICENSE
 docs
 .github
+^.*\.Rproj$
+^\.Rproj\.user$

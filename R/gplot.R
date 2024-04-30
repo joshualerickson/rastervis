@@ -1,9 +1,9 @@
 if (!isGeneric("gplot")) {
 	setGeneric("gplot", function(x, ...)
 		standardGeneric("gplot"))
-}	
+}
 
-setMethod("gplot", signature(x='Raster'), 
+setMethod("gplot", signature(x='Raster'),
           function(x, maxpixels = 50000, ...)
           {
               if (!requireNamespace("ggplot2", quietly = TRUE))
@@ -23,7 +23,7 @@ setMethod("gplot", signature(x='Raster'),
 
 
 
-setMethod("gplot", signature(x='SpatRaster'), 
+setMethod("gplot", signature(x='SpatRaster'),
           function(x, maxpixels = 50000, ...)  {
               if (!requireNamespace("ggplot2", quietly = TRUE))
               {
